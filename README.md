@@ -31,4 +31,15 @@ for our routing, which includes the cities of:
 ### How does it work?
 This made for a simple and effective design for efficient routing. The program takes in a user input for a starting station 
 ( a number between 1-11 inclusive) and computes the shortest path and distance between them using Dijkstra's algorithm.
-Each vertex in the matrix corresponds to a train station in the order that is provided above. 
+Each vertex in the matrix corresponds to a train station in the order that is provided above. 'INF' in this case represents
+an infinite distance between two vertices that are not directly connected to each other. The algorithm starts with the 
+'distances' array, which represents the shortest distance from the starting station provided by the user to every other
+station. Initially, all distances are set to the value of 'INF' except for the starting station, which is set to 0. 
+The 'previousNodes' array is used to keep track of the previous node in that path. The 'visited' array is used to keep 
+track of which nodes have been visited so far in the path. The 'getClosestUnvisitedNode' method is used to find the node 
+with the shortest distance from the starting node that hasn't been visited yet. The method iterates through all nodes, 
+checks if it hasn't been visited and if the distance is shorter than the current closest distance. The 'updateDistances' 
+method updates the distances of the neighboring nodes of the current node. It also iterates through all the nodes and 
+checks if the distance to the next node is not infinite. If the total distance to the next node is shorter than the current 
+distance to the next node, the distance is updated, and the previous node is set to the current node. The program then 
+outputs the shortest path resulting from the starting user input to the finish station from user input. 
