@@ -13,3 +13,5 @@ that may arise during travel time. Our system features speed monitoring as well 
 operations are secure and reliable. 
 
 ## Train Routing Code
+This is a program that uses Dijkstra's algorithm for shortest pathing. It uses a hard-coded graph that is represented by 
+an adjacency matrix. The adjacency matrix uses 
