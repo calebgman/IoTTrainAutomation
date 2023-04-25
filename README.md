@@ -14,4 +14,21 @@ operations are secure and reliable.
 
 ## Train Routing Code
 This is a program that uses Dijkstra's algorithm for shortest pathing. It uses a hard-coded graph that is represented by 
-an adjacency matrix. The adjacency matrix uses 
+an adjacency matrix. The adjacency matrix uses a small area for train routing. We chose to use the North Eastern U.S.A
+for our routing, which includes the cities of:
+  1. Chicago
+  2. Kansas
+  3. St. louis
+  4. Cleveland
+  5. Pitsburg
+  6. DC
+  7. Philidelphia
+  8. NY
+  9. Boston
+  10. Albany
+  11. Cincinati
+
+### How does it work?
+This made for a simple and effective design for efficient routing. The program takes in a user input for a starting station 
+( a number between 1-11 inclusive) and computes the shortest path and distance between them using Dijkstra's algorithm.
+Each vertex in the matrix corresponds to a train station in the order that is provided above. 
