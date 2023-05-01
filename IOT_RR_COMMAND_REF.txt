@@ -1,0 +1,225 @@
+---------------------------
+IOT Railway Automation
+Node Commands Reference
+---------------------------
+
+Written by Nolan Gilmore
+
+Revision 0; 2023-02-27
+
+
+i. Packet Structure Overview
+
++-----------+---------+--------------+---------+
+| direction | node ID | command word | payload |
++-----------+---------+--------------+---------+
+
+direction
+	-Size: 1 Byte
+	-Function: Serves to tell whether the packet is intended for a node or the gateway
+	-Arguments:
+		-ASCII 0 (0x30) - direction 0 (gateway->node)
+		-ASCII 1 (0x31) - direction 1 (node->gateway)
+
+node ID
+	-Size: 2 Bytes
+	-Function: The ID of the node that originated the message (direction 1) or the ID
+		of the expected recipient of the message (direction 0)
+	-Example ID: 0x2F7A
+	   N.B. Sent as ASCII String, so node ID will be converted to 2 ASCII values
+
+command word
+	-Size: 2 Bytes
+	-Function: ASCII command word to inform the recipient device on how to process the message
+
+payload
+	-Size 1 to 128 Bytes
+	-Function: Holds arguments & additional information; varies based on command word
+		N.B. a separator character (|) is needed per every additional argument (e.g. x|y|z)
+		     reducing the total number of bytes of data if multiple arguments used
+		Also Note: for size reasons the argument name is not passed to the gateway, therefore
+			arguments must be parsed in the order they are defined in this document
+			(e.g. if a command has 3 arguments, x, y, z, they will need to be sent in that
+			 order in order to be appropriately parsed)
+
+
+Example Packet: (direction;nodeID;CommandWord;arg1|arg2|argEtc)
+	N.B. the parentheses are not part of the packet structure. The packet is
+	everything inside them.
+
+ii. Commands Overview
+
+--------------------------------------------------------------------
+Each command listing will feature the command's
+ -human understandable mnemonic
+ -ASCII code word (and hex value)
+ -Direction (i.e. 0 if gateway->node, 1 if node->gateway)
+	-N.B. some commands are both g->n and n->g, these will be given
+	 separate listings for each direction
+ -Arguments
+	e.g. -arg1 (size)
+-Packet Structure
+-Description
+
+---------------------------------------------------------------------
+
+Set Signal
+-------------------------------------------------------------------------------
+	Command Word: SS (0x5353)
+	Direction: 0
+	Arguments: 1
+		-signalState (1 Byte)
+
+	Packet Structure: (0;"nodeID";SS;"signalState")
+	
+	Description: Sets the signal state of the node
+	-signalState = 0; set signal to DANGER
+	-signalState = 1; set signal to CAUTION
+	-signalState = 2; set signal to CLEAR
+
+
+Check Signal (g->n)
+-------------------------------------------------------------------------------
+	Command Word: CS (0x4353)
+	Direction: 0
+	Arguments: 0
+
+	Packet Structure: (0;"nodeID";CS;)
+	
+	Description: Requests the node to return its current signal state
+
+
+Check Signal (n->g)
+-------------------------------------------------------------------------------
+	Command Word: CS (0x4353)
+	Direction: 1
+	Arguments: 1
+		-signalState (1 Byte)
+
+	Packet Structure: (1;"nodeID";CS;"signalState")
+
+	Returns the current signal state of node to gateway. Response of node
+	to gateway from calling CS (g->n)
+
+
+Locomotive Enters Block
+-------------------------------------------------------------------------------
+	Command Word: LP (0x4C50)
+	Direction: 1
+	Arguments: 1
+		-locomotiveID (4 Bytes)
+
+	Packet Structure: (1;"nodeID";LP;"locomotiveID")
+
+	Informs the gateway that a locomotive has entered the node's block
+	and returns the ID of that locomotive
+
+
+Locomotive Exits Block
+-------------------------------------------------------------------------------
+	Command Word: LX (0x4C58)
+	Direction: 0
+	Arguments: 0
+		
+	Packet Structure: (0;"nodeID";LX;)
+		
+	Informs the node that the locomotive has exited its block and entered
+	another.
+
+
+Obstacle
+-------------------------------------------------------------------------------
+	Command word: OB (0x4F42)
+	Direction: 1
+	Arguments: 1
+		-obstacleState (1 Byte)
+
+	Packet Structure: (1;"nodeID";OB;"obstacleState")
+
+	Informs the gateway whether there is an obstacle at a level crossing
+	or not.
+		obstacleState = 1; Obstacle on Track
+		obstacleState = 0; No Obstacle on Track
+
+Unknown
+-------------------------------------------------------------------------------
+	Command word: UN (0x554E)
+	Direction: 1
+	Arguments: 1
+		-nullArg (1 Byte)
+
+	Packet Structure: (1;"nodeID";UN;0)
+
+	Exists for debugging purposes for node sendMessage function.
+
+
+	
+Switch State (g->n)
+-------------------------------------------------------------------------------
+	Command Word: SW (0x5353)
+	Direction: 1
+	Arguements: 1
+		-switchNumber (1 Byte)
+
+	PacketStructure: (1;"nodeID";SS;"switchNumber")
+
+	Requests state of one the switches connected to the node
+
+
+Switch State (n->g)
+-------------------------------------------------------------------------------
+	Command Word: SW (0x5353)
+	Direction: 0
+	Arguments: 2
+		-switchNumber (1 Byte)
+		-switchState (1 Byte)
+
+	PacketStructure: (0;"nodeID";SS;"SwitchNumber"|"switchState")
+
+	Returns the switch number of the selected switch as well as its state (either 0 or 1)
+
+	
+Actuate Switch
+--------------------------------------------------------------------------------
+	Command Word: AS (0x4053)
+	Direction: 1
+	Arguments: 1
+		-SwitchNumber (1 Byte)
+
+	PacketStructure: (0;"nodeID";AS;"switchNumber")
+
+	Actuates the selected switch, Returns SS with new State.
+
+
+Exception
+--------------------------------------------------------------------------------
+	Command Word: EX (0x4558)
+	Direction: 0
+	Arguments: 3
+		-subModule (1 Byte)
+		-Criticality (1 Byte)
+		-Error Code (4 Bytes)
+
+	PacketStructure: (0;"nodeID";EX;"subModule"|"criticality"|"errorCode")
+
+	Sends an exception generated by the node to the gateway. An exception consists of
+	the submodule that generated the error, the criticality of the error, and the error code itself
+
+	subModule: the specific subsection of the node that encountered the exception.
+		Valid values include:
+			-C: Core of the node. i.e. the error occurred somewhere in the main process
+			-X: Level crossing
+			-R: RFID
+			-L: LoRa Module
+			-S: Switches
+			-D: Signal
+			-P: Command Processor
+
+	criticality: The criticality of the error
+		Valid values include:
+			-0: Recoverable Warning
+			-1: Minor Error
+			-2: Major Error
+
+
+
