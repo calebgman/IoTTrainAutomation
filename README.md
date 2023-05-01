@@ -43,3 +43,6 @@ method updates the distances of the neighboring nodes of the current node. It al
 checks if the distance to the next node is not infinite. If the total distance to the next node is shorter than the current 
 distance to the next node, the distance is updated, and the previous node is set to the current node. The program then 
 outputs the shortest path resulting from the starting user input to the finish station from user input. 
+
+# What is the rest?
+The rest of the code is everything that is needed to actually run our system, including test files.
